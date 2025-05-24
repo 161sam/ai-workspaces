@@ -1,125 +1,47 @@
 {
-    # Global options - works for both environments
-    email {$LETSENCRYPT_EMAIL}
+    email admin@ecospherenet.work
 }
 
-# N8N
-{$N8N_HOSTNAME} {
-    # For domains, Caddy will automatically use Let's Encrypt
-    # For localhost/port addresses, HTTPS won't be enabled
+n8n.ecospherenet.work {
     reverse_proxy n8n:5678
 }
 
-# Open WebUI
-{$WEBUI_HOSTNAME} {
+webui.ecospherenet.work {
     reverse_proxy open-webui:8080
 }
 
-# Flowise
-{$FLOWISE_HOSTNAME} {
-    reverse_proxy flowise:3001
+flowise.ecospherenet.work {
+    reverse_proxy flowise:3000
 }
 
-# Langfuse
-{$LANGFUSE_HOSTNAME} {
-    reverse_proxy langfuse-web:3000
+langfuse.ecospherenet.work {
+    reverse_proxy ai-workspaces-langfuse-web-1:3000
 }
 
-# Supabase
-{$SUPABASE_HOSTNAME} {
-    reverse_proxy kong:8000
+supabase.ecospherenet.work {
+    reverse_proxy supabase-kong:8000
 }
 
-# Grafana
-{$GRAFANA_HOSTNAME} {
+grafana.ecospherenet.work {
     reverse_proxy grafana:3000
 }
 
-# Letta
-{$LETTA_HOSTNAME} {
+letta.ecospherenet.work {
     reverse_proxy letta:8283
 }
 
-# Prometheus
-{$PROMETHEUS_HOSTNAME} {
-    basic_auth {
-        {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
-    }
+prometheus.ecospherenet.work {
     reverse_proxy prometheus:9090
 }
 
-# SearXNG
-{$SEARXNG_HOSTNAME} {
-    basic_auth {
-        {$SEARXNG_USERNAME} {$SEARXNG_PASSWORD_HASH}
-    }
-    encode zstd gzip
-
-    @api {
-        path /config
-        path /healthz
-        path /stats/errors
-        path /stats/checker
-    }
-    @search {
-        path /search
-    }
-    @imageproxy {
-        path /image_proxy
-    }
-    @static {
-        path /static/*
-    }
-
-    header {
-        # CSP (https://content-security-policy.com)
-        Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
-        # Disable some browser features
-        Permissions-Policy "accelerometer=(),camera=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),payment=(),usb=()"
-        # Set referrer policy
-        Referrer-Policy "no-referrer"
-        # Force clients to use HTTPS
-        Strict-Transport-Security "max-age=31536000"
-        # Prevent MIME type sniffing from the declared Content-Type
-        X-Content-Type-Options "nosniff"
-        # X-Robots-Tag (comment to allow site indexing)
-        X-Robots-Tag "noindex, noarchive, nofollow"
-        # Remove "Server" header
-        -Server
-    }
-
-    header @api {
-        Access-Control-Allow-Methods "GET, OPTIONS"
-        Access-Control-Allow-Origin "*"
-    }
-
-    route {
-        # Cache policy
-        header Cache-Control "max-age=0, no-store"
-        header @search Cache-Control "max-age=5, private"
-        header @imageproxy Cache-Control "max-age=604800, public"
-        header @static Cache-Control "max-age=31536000, public, immutable"
-    }
-
-    # SearXNG (uWSGI)
-    reverse_proxy searxng:8080 {
-        header_up X-Forwarded-Port {http.request.port}
-        header_up X-Real-IP {http.request.remote.host}
-        # https://github.com/searx/searx-docker/issues/24
-        header_up Connection "close"
-    }
+searxng.ecospherenet.work {
+    reverse_proxy searxng:8080
 }
 
-# Portainer
-{$PORTAINER_HOSTNAME} {
+portainer.ecospherenet.work {
     reverse_proxy portainer:9000
 }
 
-# Apache Guacamole (Remote Desktop Access)
-{$GUACAMOLE_HOSTNAME} {
-    reverse_proxy guacamole-web:8080 {
-        # WebSocket Support für bessere Performance
-        header_up Upgrade {http.request.header.Upgrade}
-        header_up Connection {http.request.header.Connection}
-    }
+desktop.ecospherenet.work {
+    reverse_proxy guacamole-web:8080
 }
