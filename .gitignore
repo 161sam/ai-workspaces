@@ -7,3 +7,13 @@ shared/
 supabase/
 searxng/uwsgi.ini
 searxng/settings.yml
+# Backup-Dateien mit potentiell sensiblen Daten
+*.backup
+*.backup-*
+.env.backup*
+fix*.sh
+Diagnose*.sh
+final-fix.sh
+Caddyfile.backup*
+Caddyfile.broken
+docker-compose.yml.backup*
