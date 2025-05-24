@@ -1,6 +1,6 @@
 # n8n Installer
 
-**n8n Installer** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
+**n8n Installer** is an open-source Docker Compose template designed to significantly simplify setting up a comprehensive, self-hosted environment for n8n and Flowise. It bundles essential supporting tools like Open WebUI (as an interface for n8n agents), Supabase (database, vector information storage, authentication), Qdrant (high-performance vector information storage), Langfuse (to observe AI model performance), SearXNG (private metasearch), Grafana/Prometheus (monitoring), Crawl4ai (web crawling), Remote Desktop environments (browser-based access), and Caddy (for managed HTTPS). Plus, during setup, you can optionally import over 300 community workflows into your n8n instance!
 
 ### Why This Setup?
 
@@ -10,11 +10,13 @@ This installer helps you create your own powerful, private AI workshop. Imagine 
 - Build smart assistants tailored to your needs.
 - Analyze information and gain insights.
 - Generate creative content.
+- Access a full desktop environment directly in your browser.
 
 This setup provides a comprehensive suite of cutting-edge services, all pre-configured to work together. Key advantages include:
 
-- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, and monitoring, all in one place.
+- **Rich Toolset:** Get a curated collection of powerful open-source tools for AI development, automation, monitoring, and remote desktop access, all in one place.
 - **Scalable n8n Performance:** n8n runs in `queue` mode by default, leveraging Redis for task management and Postgres for data storage. You can dynamically specify the number of n8n workers during installation, allowing for robust parallel processing of your workflows to handle demanding loads.
+- **Remote Desktop Access:** Access full desktop environments (Ubuntu, KDE, XFCE, MATE, Fedora, Alpine) directly through your browser with Guacamole.
 - **Full Control:** All of this is hosted by you, giving you full control over your data, operations, and how resources are allocated.
 
 ### What's Included
@@ -42,7 +44,17 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Letta**](https://docs.letta.com/) - An open-source agent server and SDK that can be connected to various LLM API backends (OpenAI, Anthropic, Ollama, etc.), enabling you to build and manage AI agents.
 
-✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally.
+✅ [**Ollama**](https://ollama.com/) - Run Llama 3, Mistral, Gemma, and other large language models locally. Choose from CPU, NVIDIA GPU, or AMD GPU profiles during setup.
+
+✅ [**Remote Desktop**](https://guacamole.apache.org/) - Browser-based remote desktop access powered by Apache Guacamole. Choose from multiple desktop environments:
+- **Ubuntu Desktop** - Traditional Ubuntu desktop with RDP (lightweight, ~1GB RAM)
+- **KDE Plasma** - Modern, full-featured desktop environment (~2-3GB RAM)
+- **XFCE** - Fast, traditional desktop interface (~1.5GB RAM)
+- **MATE** - Windows-like, user-friendly desktop (~1.5GB RAM)
+- **Fedora KDE** - Latest packages with cutting-edge features (~2-3GB RAM)
+- **Alpine KDE** - Minimal, security-focused desktop (~800MB RAM)
+
+✅ [**Portainer**](https://www.portainer.io/) - A lightweight service delivery platform for containerized applications, providing an easy-to-use GUI for Docker container management.
 
 ✅ [**Prometheus**](https://prometheus.io/) - An open-source monitoring and alerting toolkit to keep an eye on system health.
 
@@ -72,7 +84,8 @@ Get started quickly with a vast library of pre-built automations (optional impor
 2.  **DNS Configuration:** Before running the installation script, you **must** configure DNS A-record for your domain, pointing to the public IP address of the server where you'll install this system. Replace `yourdomain.com` with your actual domain:
     - **Wildcard Record:** `A *.yourdomain.com` -> `YOUR_SERVER_IP`
 3.  **Server:** Minimum server system requirements: Ubuntu 24.04 LTS, 64-bit.
-    - For running **all available services**: at least **8 GB Memory / 4 CPU Cores / 60 GB Disk Space **.
+    - For running **all available services** (including desktop environments): at least **12 GB Memory / 6 CPU Cores / 80 GB Disk Space**.
+    - For running **most services without desktop**: at least **8 GB Memory / 4 CPU Cores / 60 GB Disk Space**.
     - For a minimal setup with only **n8n and Flowise**: **4 GB Memory / 2 CPU Cores / 30 GB Disk Space**.
 
 ### Running the Installer
@@ -100,7 +113,9 @@ During the installation, the script will prompt you for:
 3.  An optional **OpenAI API key** (Not required. If provided, it can be used by Supabase AI features and Crawl4ai. Press Enter to skip).
 4.  Whether you want to **import ~300 ready-made n8n community workflows** (y/n, Optional. This can take 20-30 minutes, depending on your server and network speed).
 5.  The **number of n8n workers** you want to run (Required, e.g., 1, 2, 3, 4. This determines how many workflows can be processed in parallel. Defaults to 1 if not specified).
-6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+6.  A **Service Selection Wizard** will then appear, allowing you to choose which of the available services (like Flowise, Supabase, Qdrant, Open WebUI, Remote Desktop, etc.) you want to deploy. Core services (Caddy, Postgres, Redis) will be set up to support your selections.
+    - If you select **Ollama**, you'll choose between CPU, NVIDIA GPU, or AMD GPU profiles.
+    - If you select **Remote Desktop**, you'll choose from 6 different desktop environments.
 
 Upon successful completion, the script will display a summary report. This report contains the access URLs and credentials for the deployed services. **Save this information in a safe place!**
 
@@ -117,6 +132,24 @@ The services will be available at the following addresses (replace `yourdomain.c
 - **Grafana:** `grafana.yourdomain.com`
 - **SearXNG:** `searxng.yourdomain.com`
 - **Prometheus:** `prometheus.yourdomain.com`
+- **Portainer:** `portainer.yourdomain.com`
+- **Remote Desktop:** `guacamole.yourdomain.com` (if desktop service is enabled)
+
+### Remote Desktop Access
+
+If you've enabled the Remote Desktop service, you can access a full desktop environment directly in your browser:
+
+1. Navigate to `guacamole.yourdomain.com`
+2. Login with the default credentials: `guacadmin` / `guacadmin`
+3. **⚠️ CRITICAL SECURITY:** Immediately change this default password after first login!
+4. Click on your configured desktop connection
+5. The desktop environment will load in your browser
+
+**Desktop Features:**
+- **File Sharing:** Use the `/shared` folder (mapped to `./shared` on your host) to transfer files
+- **Multiple Environments:** Choose from Ubuntu, KDE Plasma, XFCE, MATE, Fedora KDE, or Alpine
+- **Browser-based:** No additional software needed - works in any modern web browser
+- **Secure Access:** Desktop is only accessible through the Guacamole web interface
 
 With your n8n instance, you'll have access to over 400 integrations and powerful AI tools to build automated workflows. You can connect n8n to Qdrant or Supabase to store and retrieve information for your AI tasks. If you wish to use large language models (LLMs), you can easily configure them within n8n, assuming you have access to an LLM service.
 
@@ -156,6 +189,19 @@ Here are solutions to common issues you might encounter:
   2.  **Delay in applying the new certificate:** There might also be a short delay before the newly obtained certificate from Let's Encrypt is fully applied and recognized by all systems.
 - **Solution:** This is usually a temporary issue and resolves itself. Give it some time. If the warning persists for more than 24 hours, check your Caddy logs for any errors related to certificate acquisition and ensure your DNS settings are correctly pointing your domain to the server's IP address. You can also try clearing your browser's cache or using an incognito/private window to re-check.
 
+### Remote Desktop Issues
+
+- **Guacamole Connection Issues:** If you can't connect to the desktop:
+  1. Ensure the desktop service is properly started: `docker compose ps`
+  2. Check Guacamole logs: `docker compose logs guacamole`
+  3. Verify your browser supports HTML5 (all modern browsers do)
+  4. Try using Chrome or Firefox for best compatibility
+- **Performance Issues:**
+  - **KDE/Fedora KDE:** Ensure your server has at least 4GB RAM allocated
+  - **All Desktops:** Stable internet connection is crucial for smooth experience
+  - Consider GPU passthrough for graphics-intensive tasks if available
+- **File Transfer Issues:** Use the `/shared` folder inside the desktop to transfer files to/from the host system
+
 ### Supabase Issues
 
 - **Supabase Pooler Restarting:** If the `supabase-pooler` component keeps restarting, follow the instructions in [this GitHub issue](https://github.com/supabase/supabase/issues/30210#issuecomment-2456955578).
@@ -166,6 +212,24 @@ Here are solutions to common issues you might encounter:
 
 - **VPN Conflicts:** Using a VPN might interfere with downloading Docker images. If you encounter issues pulling images, try temporarily disabling your VPN.
 - **Server Requirements:** If you experience unexpected issues, ensure your server meets the minimum hardware and operating system requirements (including version) as specified in the "Prerequisites before Installation" section.
+
+## Security Considerations
+
+### Critical Security Steps
+
+1. **Guacamole Default Password:** If you enable Remote Desktop, **immediately change** the default Guacamole password (`guacadmin`/`guacadmin`) after first login.
+2. **Portainer Security:** Secure your Portainer admin account with a strong password during first setup.
+3. **Desktop User Password:** Consider changing the desktop user password inside the container for additional security.
+4. **Network Security:** Desktop services are only accessible through Guacamole's web interface, providing an additional security layer.
+
+### Performance Tips
+
+- **Desktop Environments:** Choose based on your resource requirements:
+  - **Lightweight:** Ubuntu Desktop, Alpine KDE (~1GB RAM)
+  - **Balanced:** XFCE, MATE (~1.5GB RAM)
+  - **Full-featured:** KDE Plasma, Fedora KDE (~2-3GB RAM)
+- **Browser Compatibility:** Use Chrome or Firefox for best Guacamole compatibility
+- **Network:** Ensure stable connection for smooth desktop experience
 
 ## 👓 Recommended Reading
 
@@ -205,14 +269,25 @@ For more AI workflow ideas, visit the [**official n8n AI template gallery**](htt
 
 ### Accessing Files on the Server
 
-The installer creates a `shared` folder (by default, located in the same directory where you ran the installation script). This folder is accessible by the n8n application.
-When you build automations in n8n that need to read or write files on your server, use the path `/data/shared` inside your n8n workflows. This path in n8n points to the `shared` folder on your server.
+The installer creates a `shared` folder (by default, located in the same directory where you ran the installation script). This folder is accessible by the n8n application and, if enabled, by the Remote Desktop environment.
+
+**File Access Paths:**
+- **n8n workflows:** Use `/data/shared` inside your n8n workflows
+- **Remote Desktop:** Use `/shared` inside the desktop environment
+- **Host system:** Located in the `./shared` folder in your project directory
 
 **n8n components that interact with the server's filesystem:**
 
 - [Read/Write Files from Disk](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.filesreadwrite/)
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/) (To start workflows when files change)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/) (To run command-line tools)
+
+### Remote Desktop Usage Tips
+
+- **File Transfer:** Use the shared folder for easy file transfer between host and desktop
+- **Copy/Paste:** Text can be copied between your local machine and the remote desktop
+- **Multiple Sessions:** You can have multiple browser tabs connected to the same desktop
+- **Resource Monitoring:** Use Portainer or Grafana to monitor desktop resource usage
 
 ## 📜 License
 

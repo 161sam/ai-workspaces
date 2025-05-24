@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Script to guide user through service selection for n8n-installer
+# Erweiterte Wizard-Funktionalität mit Desktop-Auswahl
 
 # Source utility functions, if any, assuming it's in the same directory
 # and .env is in the parent directory
@@ -10,12 +11,6 @@ ENV_FILE="$PROJECT_ROOT/.env"
 
 # Source the utilities file
 source "$(dirname "$0")/utils.sh"
-
-# UTILS_SCRIPT="$SCRIPT_DIR/utils.sh" # Uncomment if utils.sh contains relevant functions
-
-# if [ -f "$UTILS_SCRIPT" ]; then
-#     source "$UTILS_SCRIPT"
-# fi
 
 # Function to check if whiptail is installed
 check_whiptail() {
@@ -47,8 +42,8 @@ fi
 # Prepare comma-separated current profiles for easy matching, adding leading/trailing commas
 current_profiles_for_matching=",$CURRENT_PROFILES_VALUE,"
 
-# --- Define available services and their descriptions ---
-# Base service definitions (tag, description)
+# --- Define available services and their descriptions (ERWEITERT) ---
+# Base service definitions (tag, description) - ERWEITERT
 base_services_data=(
     "n8n" "n8n, n8n-worker, n8n-import (Workflow Automation)"
     "flowise" "Flowise (AI Agent Builder)"
@@ -61,6 +56,8 @@ base_services_data=(
     "crawl4ai" "Crawl4ai (Web Crawler for AI)"
     "letta" "Letta (Agent Server & SDK)"
     "ollama" "Ollama (Local LLM Runner - select hardware in next step)"
+    "portainer" "Portainer (Container Management UI)"
+    "desktop" "Remote Desktop (Browser-based - select variant in next step)"
 )
 
 services=() # This will be the final array for whiptail
@@ -77,6 +74,15 @@ while [ $idx -lt ${#base_services_data[@]} ]; do
             if [[ "$current_profiles_for_matching" == *",cpu,"* || \
                   "$current_profiles_for_matching" == *",gpu-nvidia,"* || \
                   "$current_profiles_for_matching" == *",gpu-amd,"* ]]; then
+                status="ON"
+            fi
+        elif [[ "$tag" == "desktop" ]]; then
+            if [[ "$current_profiles_for_matching" == *",desktop-ubuntu,"* || \
+                  "$current_profiles_for_matching" == *",desktop-kde,"* || \
+                  "$current_profiles_for_matching" == *",desktop-xfce,"* || \
+                  "$current_profiles_for_matching" == *",desktop-mate,"* || \
+                  "$current_profiles_for_matching" == *",desktop-fedora-kde,"* || \
+                  "$current_profiles_for_matching" == *",desktop-alpine,"* ]]; then
                 status="ON"
             fi
         elif [[ "$current_profiles_for_matching" == *",$tag,"* ]]; then
@@ -126,6 +132,8 @@ fi
 selected_profiles=()
 ollama_selected=0
 ollama_profile=""
+desktop_selected=0
+desktop_profile=""
 
 if [ -n "$CHOICES" ]; then
     # Whiptail returns a string like "tag1" "tag2" "tag3"
@@ -136,6 +144,8 @@ if [ -n "$CHOICES" ]; then
     for choice in "${temp_choices[@]}"; do
         if [ "$choice" == "ollama" ]; then
             ollama_selected=1
+        elif [ "$choice" == "desktop" ]; then
+            desktop_selected=1
         else
             selected_profiles+=("$choice")
         fi
@@ -190,24 +200,130 @@ if [ $ollama_selected -eq 1 ]; then
     fi
 fi
 
+# Desktop-Varianten-Auswahl (ähnlich wie Ollama Hardware-Auswahl)
+if [ $desktop_selected -eq 1 ]; then
+    # Bestehende Desktop-Profile aus .env ermitteln
+    default_desktop="desktop-ubuntu" # Fallback default
+    desktop_ubuntu_on="OFF"
+    desktop_kde_on="OFF"
+    desktop_xfce_on="OFF"
+    desktop_mate_on="OFF"
+    desktop_fedora_kde_on="OFF"
+    desktop_alpine_on="OFF"
+
+    # Prüfe aktuelle Profile in .env
+    if [[ "$current_profiles_for_matching" == *",desktop-ubuntu,"* ]]; then
+        desktop_ubuntu_on="ON"
+        default_desktop="desktop-ubuntu"
+    elif [[ "$current_profiles_for_matching" == *",desktop-kde,"* ]]; then
+        desktop_kde_on="ON"
+        default_desktop="desktop-kde"
+    elif [[ "$current_profiles_for_matching" == *",desktop-xfce,"* ]]; then
+        desktop_xfce_on="ON"
+        default_desktop="desktop-xfce"
+    elif [[ "$current_profiles_for_matching" == *",desktop-mate,"* ]]; then
+        desktop_mate_on="ON"
+        default_desktop="desktop-mate"
+    elif [[ "$current_profiles_for_matching" == *",desktop-fedora-kde,"* ]]; then
+        desktop_fedora_kde_on="ON"
+        default_desktop="desktop-fedora-kde"
+    elif [[ "$current_profiles_for_matching" == *",desktop-alpine,"* ]]; then
+        desktop_alpine_on="ON"
+        default_desktop="desktop-alpine"
+    else
+        # Wenn Desktop gewählt wurde, aber kein spezifisches Profil gesetzt war
+        desktop_ubuntu_on="ON"
+        default_desktop="desktop-ubuntu"
+    fi
+
+    desktop_variant_options=(
+        "desktop-ubuntu" "Ubuntu Desktop (Standard RDP - Lightweight)" "$desktop_ubuntu_on"
+        "desktop-kde" "KDE Plasma Desktop (Modern, Full-featured)" "$desktop_kde_on"
+        "desktop-xfce" "XFCE Desktop (Fast, Traditional)" "$desktop_xfce_on"
+        "desktop-mate" "MATE Desktop (Windows-like, User-friendly)" "$desktop_mate_on"
+        "desktop-fedora-kde" "Fedora KDE Desktop (Latest packages)" "$desktop_fedora_kde_on"
+        "desktop-alpine" "Alpine KDE Desktop (Minimal, Secure)" "$desktop_alpine_on"
+    )
+
+    CHOSEN_DESKTOP_PROFILE=$(whiptail --title "Desktop Environment Selection" --default-item "$default_desktop" --radiolist \
+      "Choose your preferred desktop environment. Each provides different user experiences and resource usage." 20 78 6 \
+      "${desktop_variant_options[@]}" \
+      3>&1 1>&2 2>&3)
+
+    desktop_exitstatus=$?
+    if [ $desktop_exitstatus -eq 0 ] && [ -n "$CHOSEN_DESKTOP_PROFILE" ]; then
+        selected_profiles+=("$CHOSEN_DESKTOP_PROFILE")
+        desktop_profile="$CHOSEN_DESKTOP_PROFILE"
+
+        # Desktop-Profil-spezifische Informationen anzeigen
+        case "$CHOSEN_DESKTOP_PROFILE" in
+            "desktop-ubuntu")
+                log_info "Ubuntu Desktop selected: Traditional RDP connection, lightweight"
+                ;;
+            "desktop-kde")
+                log_info "KDE Plasma Desktop selected: Modern interface, high resource usage"
+                ;;
+            "desktop-xfce")
+                log_info "XFCE Desktop selected: Fast and responsive, moderate resource usage"
+                ;;
+            "desktop-mate")
+                log_info "MATE Desktop selected: Windows-like interface, user-friendly"
+                ;;
+            "desktop-fedora-kde")
+                log_info "Fedora KDE Desktop selected: Latest packages, cutting-edge features"
+                ;;
+            "desktop-alpine")
+                log_info "Alpine KDE Desktop selected: Minimal footprint, maximum security"
+                ;;
+        esac
+    else
+        log_info "Desktop environment selection cancelled. No desktop service will be configured."
+        desktop_selected=0
+    fi
+fi
+
+# Erweiterte Anzeige der ausgewählten Services
 if [ ${#selected_profiles[@]} -eq 0 ]; then
     log_info "No optional services selected."
     COMPOSE_PROFILES_VALUE=""
 else
     log_info "You have selected the following service profiles to be deployed:"
-    # Join the array into a comma-separated string
     COMPOSE_PROFILES_VALUE=$(IFS=,; echo "${selected_profiles[*]}")
+
     for profile in "${selected_profiles[@]}"; do
-        # Check if the current profile is an Ollama hardware profile that was chosen
-        if [[ "$profile" == "cpu" || "$profile" == "gpu-nvidia" || "$profile" == "gpu-amd" ]]; then
-            if [ "$profile" == "$ollama_profile" ]; then # ollama_profile stores the CHOSEN_OLLAMA_PROFILE from this wizard run
-                 echo "  - Ollama ($profile profile)"
-            else # This handles a (highly unlikely) non-Ollama service named "cpu", "gpu-nvidia", or "gpu-amd"
-                 echo "  - $profile"
-            fi
-        else
-            echo "  - $profile"
-        fi
+        case "$profile" in
+            # Ollama Hardware-Profile
+            "cpu"|"gpu-nvidia"|"gpu-amd")
+                if [ "$profile" == "$ollama_profile" ]; then
+                    echo "  - Ollama ($profile profile)"
+                else
+                    echo "  - $profile"
+                fi
+                ;;
+            # Desktop-Profile
+            "desktop-ubuntu")
+                echo "  - Ubuntu Desktop (RDP-based, lightweight)"
+                ;;
+            "desktop-kde")
+                echo "  - KDE Plasma Desktop (modern, full-featured)"
+                ;;
+            "desktop-xfce")
+                echo "  - XFCE Desktop (fast, traditional)"
+                ;;
+            "desktop-mate")
+                echo "  - MATE Desktop (Windows-like)"
+                ;;
+            "desktop-fedora-kde")
+                echo "  - Fedora KDE Desktop (latest packages)"
+                ;;
+            "desktop-alpine")
+                echo "  - Alpine KDE Desktop (minimal, secure)"
+                ;;
+            # Standard-Services
+            *)
+                echo "  - $profile"
+                ;;
+        esac
     done
 fi
 
@@ -236,4 +352,4 @@ fi
 # Make the script executable (though install.sh calls it with bash)
 chmod +x "$SCRIPT_DIR/04_wizard.sh"
 
-exit 0 
+exit 0

@@ -42,7 +42,7 @@
 
 # Prometheus
 {$PROMETHEUS_HOSTNAME} {
-    basic_auth { 
+    basic_auth {
         {$PROMETHEUS_USERNAME} {$PROMETHEUS_PASSWORD_HASH}
     }
     reverse_proxy prometheus:9090
@@ -50,11 +50,11 @@
 
 # SearXNG
 {$SEARXNG_HOSTNAME} {
-    basic_auth { 
+    basic_auth {
         {$SEARXNG_USERNAME} {$SEARXNG_PASSWORD_HASH}
     }
     encode zstd gzip
-    
+
     @api {
         path /config
         path /healthz
@@ -70,7 +70,7 @@
     @static {
         path /static/*
     }
-    
+
     header {
         # CSP (https://content-security-policy.com)
         Content-Security-Policy "upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://github.com/searxng/searxng/issues/new; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self' https://overpass-api.de; img-src * data:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.dailymotion.com https://www.deezer.com https://www.mixcloud.com https://w.soundcloud.com https://embed.spotify.com;"
@@ -87,12 +87,12 @@
         # Remove "Server" header
         -Server
     }
-    
+
     header @api {
         Access-Control-Allow-Methods "GET, OPTIONS"
         Access-Control-Allow-Origin "*"
     }
-    
+
     route {
         # Cache policy
         header Cache-Control "max-age=0, no-store"
@@ -100,12 +100,26 @@
         header @imageproxy Cache-Control "max-age=604800, public"
         header @static Cache-Control "max-age=31536000, public, immutable"
     }
-    
+
     # SearXNG (uWSGI)
     reverse_proxy searxng:8080 {
         header_up X-Forwarded-Port {http.request.port}
         header_up X-Real-IP {http.request.remote.host}
         # https://github.com/searx/searx-docker/issues/24
         header_up Connection "close"
+    }
+}
+
+# Portainer
+{$PORTAINER_HOSTNAME} {
+    reverse_proxy portainer:9000
+}
+
+# Apache Guacamole (Remote Desktop Access)
+{$GUACAMOLE_HOSTNAME} {
+    reverse_proxy guacamole-web:8080 {
+        # WebSocket Support für bessere Performance
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection {http.request.header.Connection}
     }
 }

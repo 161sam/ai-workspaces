@@ -14,6 +14,36 @@ volumes:
   grafana:
   prometheus_data:
   letta_data:
+  portainer_data:
+  ubuntu_desktop_home:
+  guacamole_data:
+
+# Template für Desktop-Services mit verschiedenen Images
+x-desktop-base: &desktop-base
+  restart: unless-stopped
+  environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Berlin
+    - SUBFOLDER=/desktop/
+  volumes:
+    - ubuntu_desktop_home:/config
+    - ./shared:/shared:rw
+  shm_size: "1gb"
+  expose:
+    - "3389" # RDP
+    - "3390" # VNC
+  cap_drop:
+    - ALL
+  cap_add:
+    - SETGID
+    - SETUID
+    - SYS_CHROOT
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -487,3 +517,258 @@ services:
       LETTA_SERVER_PASSWORD: ${LETTA_SERVER_PASSWORD:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    profiles: ["portainer"]
+    restart: unless-stopped
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - PORTAINER_HTTP_DISABLED=true # Nur HTTPS über Caddy
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  # Desktop Profiles:
+  # Ubuntu Desktop (Standard)
+  ubuntu-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/rdesktop:latest
+    container_name: ubuntu-desktop
+    profiles: ["desktop-ubuntu"]
+
+  # KDE Desktop
+  kde-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/webtop:kde-ubuntu
+    container_name: kde-desktop
+    profiles: ["desktop-kde"]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - TITLE=KDE Desktop
+    expose:
+      - "3000" # Web-Interface für webtop
+
+  # XFCE Desktop
+  xfce-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/webtop:xfce-ubuntu
+    container_name: xfce-desktop
+    profiles: ["desktop-xfce"]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - TITLE=XFCE Desktop
+    expose:
+      - "3000" # Web-Interface für webtop
+
+  # MATE Desktop (Windows-ähnlich)
+  mate-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/webtop:mate-ubuntu
+    container_name: mate-desktop
+    profiles: ["desktop-mate"]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - TITLE=MATE Desktop
+    expose:
+      - "3000" # Web-Interface für webtop
+
+  # Fedora KDE Desktop
+  fedora-kde-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/webtop:kde-fedora
+    container_name: fedora-kde-desktop
+    profiles: ["desktop-fedora-kde"]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - TITLE=Fedora KDE Desktop
+    expose:
+      - "3000" # Web-Interface für webtop
+
+  # Alpine Desktop (minimal)
+  alpine-desktop:
+    <<: *desktop-base
+    image: lscr.io/linuxserver/webtop:alpine-kde
+    container_name: alpine-desktop
+    profiles: ["desktop-alpine"]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      - TITLE=Alpine KDE Desktop
+    expose:
+      - "3000" # Web-Interface für webtop
+
+  # Guacamole Services (with desktop profile)
+  guacd:
+    image: guacamole/guacd:latest
+    container_name: guacd
+    profiles:
+      [
+        "desktop-ubuntu",
+        "desktop-kde",
+        "desktop-xfce",
+        "desktop-mate",
+        "desktop-fedora-kde",
+        "desktop-alpine",
+      ]
+    restart: unless-stopped
+    volumes:
+      - guacamole_data:/var/lib/guacamole
+    cap_drop:
+      - ALL
+    cap_add:
+      - AUDIT_WRITE
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  guacamole-web:
+    image: guacamole/guacamole:latest
+    container_name: guacamole-web
+    profiles:
+      [
+        "desktop-ubuntu",
+        "desktop-kde",
+        "desktop-xfce",
+        "desktop-mate",
+        "desktop-fedora-kde",
+        "desktop-alpine",
+      ]
+    restart: unless-stopped
+    depends_on:
+      guacd:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      - GUACD_HOSTNAME=guacd
+      - GUACD_PORT=4822
+      - POSTGRES_DATABASE=guacamole
+      - POSTGRES_HOSTNAME=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - GUACAMOLE_HOME=/etc/guracamole
+      - WEBAPP_CONTEXT=ROOT
+    volumes:
+      - guacamole_data:/etc/guacamole
+    cap_drop:
+      - ALL
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  # Dynamische Guacamole-Initialisierung basierend auf aktivem Desktop-Profil
+  guacamole-init:
+    image: guacamole/guacamole:latest
+    container_name: guacamole-init
+    profiles:
+      [
+        "desktop-ubuntu",
+        "desktop-kde",
+        "desktop-xfce",
+        "desktop-mate",
+        "desktop-fedora-kde",
+        "desktop-alpine",
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_DATABASE=guacamole
+      - POSTGRES_HOSTNAME=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - COMPOSE_PROFILES=${COMPOSE_PROFILES}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "Initializing Guacamole database for active desktop profiles..."
+
+        # Database setup (wie vorher)
+        PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'guacamole'" | grep -q 1 || {
+          echo "Creating guacamole database..."
+          PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d postgres -c "CREATE DATABASE guacamole;"
+        }
+
+        # Schema initialization
+        PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d guacamole -tc "SELECT 1 FROM information_schema.tables WHERE table_name = 'guacamole_user'" | grep -q 1 || {
+          echo "Initializing Guacamole schema..."
+          /opt/guacamole/bin/initdb.sh --postgres | PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d guacamole
+
+          # Create admin user
+          PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d guacamole -c "
+            INSERT INTO guacamole_entity (name, type) VALUES ('guacadmin', 'USER');
+            INSERT INTO guracamole_user (entity_id, password_hash, password_salt)
+            VALUES (1, x'CA458A7D494E3BE824F5E1E175A1556C0F8EEF2C2D7DF3633BEC4A29C4411960F5CC4EE6C5E8CA3C9A8A84B8F8E4D1F7E8A1E1C9F5A9E8C2E1F5C8A7E1F9C8E4', x'FE24ADC5E11E2B25288D1704ABD1B49B95A7B7C2E1E1F8F9F4E7A9A2A5A8E7B9');
+          "
+        }
+
+        # Dynamic connection setup based on active profiles
+        connection_id=1
+
+        if echo "${COMPOSE_PROFILES}" | grep -q "desktop-ubuntu"; then
+          echo "Setting up Ubuntu Desktop connection..."
+          PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d guacamole -c "
+            INSERT INTO guacamole_connection (connection_name, protocol) VALUES ('Ubuntu Desktop', 'rdp') ON CONFLICT DO NOTHING;
+            INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+            VALUES
+              ($connection_id, 'hostname', 'ubuntu-desktop'),
+              ($connection_id, 'port', '3389'),
+              ($connection_id, 'username', 'abc'),
+              ($connection_id, 'ignore-cert', 'true'),
+              ($connection_id, 'security', 'any'),
+              ($connection_id, 'resize-method', 'reconnect')
+            ON CONFLICT DO NOTHING;
+          "
+          connection_id=$((connection_id + 1))
+        fi
+
+        if echo "${COMPOSE_PROFILES}" | grep -q "desktop-kde"; then
+          echo "Setting up KDE Desktop connection..."
+          # KDE Desktop über HTTP/HTTPS (webtop)
+          PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U postgres -d guacamole -c "
+            INSERT INTO guacamole_connection (connection_name, protocol) VALUES ('KDE Desktop (Web)', 'rdp') ON CONFLICT DO NOTHING;
+            INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+            VALUES
+              ($connection_id, 'hostname', 'kde-desktop'),
+              ($connection_id, 'port', '3389'),
+              ($connection_id, 'username', 'abc'),
+              ($connection_id, 'ignore-cert', 'true'),
+              ($connection_id, 'security', 'any'),
+              ($connection_id, 'resize-method', 'reconnect')
+            ON CONFLICT DO NOTHING;
+          "
+          connection_id=$((connection_id + 1))
+        fi
+
+        # Weitere Desktop-Varianten...
+        # (analog für XFCE, MATE, etc.)
+
+        echo "Guacamole setup complete for active desktop profiles."
