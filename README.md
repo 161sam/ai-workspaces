@@ -60,6 +60,12 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
 
+✅ [**AppFlowy**]
+
+✅ [**AFFINE**]
+
+✅ [**GitLab**]
+
 ### Included Community Workflows
 
 Get started quickly with a vast library of pre-built automations (optional import during setup)! This collection includes over 300 workflows covering a wide range of use cases:
