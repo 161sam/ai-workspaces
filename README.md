@@ -296,6 +296,15 @@ The installer creates a `shared` folder (by default, located in the same directo
 - **Multiple Sessions:** You can have multiple browser tabs connected to the same desktop
 - **Resource Monitoring:** Use Portainer or Grafana to monitor desktop resource usage
 
+## Running Tests
+
+Unit tests reside in the `tests` folder. After installing `pytest`, run the suite from the project root:
+
+```bash
+python -m pytest
+```
+
+
 ## 📜 License
 
 This project (originally created by the n8n team, with further development by contributors - see "Important Links") is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
