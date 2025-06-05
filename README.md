@@ -299,9 +299,10 @@ The installer creates a `shared` folder (by default, located in the same directo
 
 ## Running Tests
 
-Unit tests reside in the `tests` folder. After installing `pytest`, run the suite from the project root:
+Unit tests reside in the `tests` folder. Install test dependencies using `pip` and run the suite from the project root:
 
 ```bash
+pip install -r requirements.txt
 python -m pytest
 ```
 
