@@ -99,7 +99,9 @@ class Pipe:
                     "Authorization": f"Bearer {self.valves.n8n_bearer_token}",
                     "Content-Type": "application/json",
                 }
-                payload = {"sessionId": f"{chat_id}"}
+                payload = {}
+                if chat_id:
+                    payload["sessionId"] = str(chat_id)
                 payload[self.valves.input_field] = question
                 response = requests.post(
                     self.valves.n8n_url, json=payload, headers=headers
