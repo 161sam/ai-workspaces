@@ -14,9 +14,11 @@ import time
 import requests
 
 def extract_event_info(event_emitter) -> tuple[Optional[str], Optional[str]]:
-    if not event_emitter or not event_emitter.__closure__:
+    """Extract chat_id and message_id from an event emitter's closure."""
+    closure = getattr(event_emitter, "__closure__", None)
+    if not event_emitter or not closure:
         return None, None
-    for cell in event_emitter.__closure__:
+    for cell in closure:
         if isinstance(request_info := cell.cell_contents, dict):
             chat_id = request_info.get("chat_id")
             message_id = request_info.get("message_id")
