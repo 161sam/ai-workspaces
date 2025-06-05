@@ -183,6 +183,7 @@ This script will:
 - [Community forum](https://thinktank.ottomator.ai/c/local-ai/18) over in the oTTomator Think Tank for discussions and support.
 - [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for tracking new features and bug fixes.
 - Download an N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (More instructions may be available on that page).
+- [Einstieg in die Codebasis](ai-docs/beginner-guide.md) \u2013 kurze Einf\u00fchrung f\u00fcr Anf\u00e4nger.
 
 ## Troubleshooting
 
