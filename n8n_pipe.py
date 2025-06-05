@@ -86,6 +86,7 @@ class Pipe:
         )
         chat_id, _ = extract_event_info(__event_emitter__)
         messages = body.get("messages", [])
+        n8n_response = None
 
         # Verify a message is available
         if messages:
@@ -130,6 +131,7 @@ class Pipe:
                     "content": "No messages found in the request body",
                 }
             )
+            n8n_response = "No messages found in the request body"
 
         await self.emit_status(__event_emitter__, "info", "Complete", True)
         return n8n_response
