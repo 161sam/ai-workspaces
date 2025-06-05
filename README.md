@@ -60,11 +60,11 @@ The installer also makes the following powerful open-source tools **available fo
 
 ✅ [**Grafana**](https://grafana.com/) - An open-source platform for visualizing monitoring data, helping you understand system performance at a glance.
 
-✅ [**AppFlowy**]
+✅ [**AppFlowy**](https://www.appflowy.io/) - A local-first note-taking and project management tool.
 
-✅ [**AFFINE**]
+✅ [**AFFiNE**](https://affine.pro/) - An open-source collaborative workspace.
 
-✅ [**GitLab**]
+✅ [**GitLab**](https://about.gitlab.com/) - A self-hosted Git repository and CI/CD platform.
 
 ### Included Community Workflows
 
