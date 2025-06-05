@@ -9,7 +9,6 @@ This module defines a Pipe class that utilizes N8N for an Agent
 
 from typing import Optional, Callable, Awaitable
 from pydantic import BaseModel, Field
-import os
 import time
 import requests
 
@@ -44,7 +43,6 @@ class Pipe:
         self.name = "N8N Pipe"
         self.valves = self.Valves()
         self.last_emit_time = 0
-        pass
 
     async def emit_status(
         self,
