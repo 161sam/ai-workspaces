@@ -1,4 +1,8 @@
+import os
+import sys
 import pytest
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from n8n_pipe import extract_event_info, Pipe
 
@@ -18,16 +22,14 @@ def test_extract_event_info_closure():
 
 @pytest.mark.asyncio
 async def test_pipe_no_messages_adds_assistant_reply():
-    pipe = Pipe()
+    body = {}
     events = []
 
     async def dummy_emitter(event):
         events.append(event)
 
-    body = {}
-    result = await pipe.pipe(body, __event_emitter__=dummy_emitter)
+    result = await Pipe().pipe(body, __event_emitter__=dummy_emitter)
 
     assert result == "No messages found in the request body"
-    assert body["messages"] == [
-        {"role": "assistant", "content": "No messages found in the request body"}
-    ]
+    assert body["messages"][0]["role"] == "assistant"
+    assert body["messages"][0]["content"] == "No messages found in the request body"
