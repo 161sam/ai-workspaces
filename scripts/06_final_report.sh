@@ -143,7 +143,7 @@ fi
 
 if is_profile_active "searxng"; then
   echo
-  echo "================================= Searxng ============================="
+  echo "================================= SearXNG ============================="
   echo
   echo "Host: ${SEARXNG_HOSTNAME:-<hostname_not_set>}"
   echo "User: ${SEARXNG_USERNAME:-<not_set_in_env>}"
