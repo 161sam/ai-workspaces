@@ -126,7 +126,8 @@ class Pipe:
                 True,
             )
             n8n_response = "No messages found in the request body"
+            body.setdefault("messages", [])
             body["messages"].append({"role": "assistant", "content": n8n_response})
 
         await self.emit_status(__event_emitter__, "info", "Complete", True)
-        return n8n_response
+        return str(n8n_response) if n8n_response is not None else None
