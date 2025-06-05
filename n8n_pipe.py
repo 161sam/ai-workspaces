@@ -108,6 +108,7 @@ class Pipe:
                     raise Exception(f"Error: {response.status_code} - {response.text}")
 
                 # Set assistant message with chain reply
+                body.setdefault("messages", [])
                 body["messages"].append({"role": "assistant", "content": n8n_response})
             except Exception as e:
                 await self.emit_status(
