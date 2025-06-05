@@ -86,6 +86,7 @@ class Pipe:
         )
         chat_id, _ = extract_event_info(__event_emitter__)
         messages = body.get("messages", [])
+        n8n_response = None
 
         # Verify a message is available
         if messages:
@@ -106,7 +107,7 @@ class Pipe:
                 else:
                     raise Exception(f"Error: {response.status_code} - {response.text}")
 
-                # Set assitant message with chain reply
+                # Set assistant message with chain reply
                 body["messages"].append({"role": "assistant", "content": n8n_response})
             except Exception as e:
                 await self.emit_status(
@@ -124,12 +125,8 @@ class Pipe:
                 "No messages found in the request body",
                 True,
             )
-            body["messages"].append(
-                {
-                    "role": "assistant",
-                    "content": "No messages found in the request body",
-                }
-            )
+            n8n_response = "No messages found in the request body"
+            body["messages"].append({"role": "assistant", "content": n8n_response})
 
         await self.emit_status(__event_emitter__, "info", "Complete", True)
         return n8n_response
