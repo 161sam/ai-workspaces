@@ -1,0 +1,19 @@
+name: OpenHands Resolver
+
+on:
+  issues:
+    types: [labeled, opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  resolve:
+    if: github.event.label.name == 'fix-me' || contains(github.event.comment.body, '@openhands-agent')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: All-Hands-AI/openhands-resolver@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          llm_model: anthropic/claude-3-5-sonnet-20241022
+          max_iterations: 10
