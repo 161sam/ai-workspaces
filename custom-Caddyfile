@@ -1,0 +1,93 @@
+# Korrigierte Caddy Konfiguration mit richtigen Container-Namen
+
+# Bestehende Services (migriert von Apache2)
+affine.ecospherenet.work {
+    reverse_proxy affine_server:3010
+    tls admin@ecospherenet.work
+}
+
+appflowy.ecospherenet.work {
+    reverse_proxy appflowy-cloud-nginx-1:80
+    tls admin@ecospherenet.work
+}
+
+gitlab.ecospherenet.work {
+    reverse_proxy gitlab-gitlab:80
+    tls admin@ecospherenet.work
+}
+
+openproject.ecospherenet.work {
+    reverse_proxy localhost:8080
+    tls admin@ecospherenet.work
+}
+
+# Neue AI-Workspace Services (korrigierte Container-Namen)
+n8n.ecospherenet.work {
+    reverse_proxy n8n:5678
+    tls admin@ecospherenet.work
+}
+
+flowise.ecospherenet.work {
+    reverse_proxy flowise:3001
+    tls admin@ecospherenet.work
+}
+
+webui.ecospherenet.work {
+    reverse_proxy open-webui:8080
+    tls admin@ecospherenet.work
+}
+
+supabase.ecospherenet.work {
+    reverse_proxy supabase-kong:8000
+    tls admin@ecospherenet.work
+}
+
+langfuse.ecospherenet.work {
+    reverse_proxy localai-langfuse-web-1:3000
+    tls admin@ecospherenet.work
+}
+
+searxng.ecospherenet.work {
+    reverse_proxy searxng:8080
+    tls admin@ecospherenet.work
+}
+
+grafana.ecospherenet.work {
+    reverse_proxy grafana:3000
+    tls admin@ecospherenet.work
+}
+
+prometheus.ecospherenet.work {
+    reverse_proxy prometheus:9090
+    tls admin@ecospherenet.work
+}
+
+portainer.ecospherenet.work {
+    reverse_proxy portainer:9000
+    tls admin@ecospherenet.work
+}
+
+guacamole.ecospherenet.work {
+    reverse_proxy guacamole-web:8080
+    tls admin@ecospherenet.work
+}
+
+qdrant.ecospherenet.work {
+    reverse_proxy qdrant:6333
+    tls admin@ecospherenet.work
+}
+
+letta.ecospherenet.work {
+    reverse_proxy letta:8283
+    tls admin@ecospherenet.work
+}
+
+crawl4ai.ecospherenet.work {
+    reverse_proxy crawl4ai:11235
+    tls admin@ecospherenet.work
+}
+
+ollama.ecospherenet.work {
+    reverse_proxy ollama:11434
+    tls admin@ecospherenet.work
+}

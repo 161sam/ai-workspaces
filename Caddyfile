@@ -45,3 +45,32 @@ portainer.ecospherenet.work {
 desktop.ecospherenet.work {
     reverse_proxy guacamole-web:8080
 }
+
+affine.ecospherenet.work {
+    reverse_proxy affine_server:3010
+    tls admin@ecospherenet.work
+}
+
+appflowy.ecospherenet.work {
+    reverse_proxy appflowy-cloud-nginx-1:80
+    tls admin@ecospherenet.work
+}
+
+gitlab.ecospherenet.work {
+    reverse_proxy gitlab-gitlab:80
+    tls admin@ecospherenet.work
+}
+
+proxmox.ecospherenet.work {
+    reverse_proxy https://192.168.0.45:8006 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+    tls admin@ecospherenet.work
+}
+
+ai-workspaces.ecospherenetwork.net {
+    reverse_proxy http://192.168.0.36:80
+    tls admin@ecospherenet.work
+}
