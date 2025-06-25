@@ -74,3 +74,8 @@ ai-workspaces.ecospherenetwork.net {
     reverse_proxy http://192.168.0.36:80
     tls admin@ecospherenet.work
 }
+
+ai-workspace.dev.ecospherenetwork.net {
+    reverse_proxy http://192.168.0.163:80
+    tls admin@ecospherenet.work
+}
